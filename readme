@@ -1,0 +1,9 @@
+openssl req -x509 -newkey rsa:4096 -keyout ca.key -out ca.crt -days 365 -nodes -subj "/CN=MyCA"
+
+kubectl create secret tls ca-key-pair --cert=ca.crt --key=ca.key 
+
+kubectl create configmap ca-config-map --from-file=ca.crt=ca.crt 
+
+mongosh --tls --tlsCAFile mongoca.pem --tlsCertificateKeyFile mongoca-key.pem --username my-user --password admin123 mongodb://mongo1.domain.net:31181,mongo2.domain.net:31182,mongo3.domain.net:31183/retryWrites=true&tls=true
+
+

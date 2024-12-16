@@ -1,0 +1,29 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: mongodb-ca-issuer
+spec:
+  ca:
+    secretName: ca-key-pair
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: my-mongodb-cert
+spec:
+  secretName: my-mongodb-cert
+  subject:
+    organizations:
+      - my-mongodb
+  commonName: my-mongodb.mongodb-operator.svc.cluster.local
+  dnsNames:
+    - my-mongodb.mongodb-operator.svc.cluster.local
+    - my-mongodb-0.my-mongodb-svc.mongodb-operator.svc.cluster.local
+    - my-mongodb-1.my-mongodb-svc.mongodb-operator.svc.cluster.local
+    - my-mongodb-2.my-mongodb-svc.mongodb-operator.svc.cluster.local
+    - mongo1.domain.net
+    - mongo2.domain.net
+    - mongo3.domain.net
+  issuerRef:
+    name: mongodb-ca-issuer
+    kind: Issuer

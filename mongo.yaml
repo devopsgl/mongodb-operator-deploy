@@ -1,0 +1,99 @@
+---
+apiVersion: mongodbcommunity.mongodb.com/v1
+kind: MongoDBCommunity
+metadata:
+  name: my-mongodb
+spec:
+  members: 3
+  type: ReplicaSet
+  version: "6.0.5"
+  replicaSetHorizons:
+  - horizon: mongo1.domain.net:31181
+  - horizon: mongo2.domain.net:31182
+  - horizon: mongo3.domain.net:31183
+  security:
+    tls:
+      enabled: true
+      certificateKeySecretRef:
+        name: my-mongodb-cert
+      caConfigMapRef:
+        name: ca-config-map
+    authentication:
+      modes: ["SCRAM"]
+  users:
+    - name: my-user
+      db: admin
+      passwordSecretRef: # a reference to the secret that will be used to generate the user's password
+        name: my-user-password
+      roles:
+        - name: clusterAdmin
+          db: admin
+        - name: userAdminAnyDatabase
+          db: admin
+      scramCredentialsSecretName: my-scram
+
+
+# the user credentials will be generated from this secret
+# once the credentials are generated, this secret is no longer required
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-user-password
+type: Opaque
+stringData:
+  password: admin123
+---
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: external-mongo-service-0
+  annotations:
+    kube-linter.io/ignore-all: "used for sample"
+spec:
+  type: NodePort
+  selector:
+    app: my-mongodb-svc
+    statefulset.kubernetes.io/pod-name: my-mongodb-0
+  ports:
+    - protocol: TCP
+      nodePort: 31181
+      port: 31181
+      targetPort: 27017
+
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: external-mongo-service-1
+  annotations:
+    kube-linter.io/ignore-all: "used for sample"
+spec:
+  type: NodePort
+  selector:
+    app: my-mongodb-svc
+    statefulset.kubernetes.io/pod-name: my-mongodb-1
+  ports:  
+    - nodePort: 31182
+      port: 31182
+      targetPort: 27017
+
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: external-mongo-service-2
+  annotations:
+    kube-linter.io/ignore-all: "used for sample"
+spec:
+  type: NodePort
+  selector:
+    app: my-mongodb-svc
+    statefulset.kubernetes.io/pod-name: my-mongodb-2
+  ports:  
+    - nodePort: 31183
+      port: 31183
+      targetPort: 27017
